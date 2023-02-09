@@ -55,7 +55,7 @@ ws.on('open', function open() {
         env: process.env
       });
     term.onData((data: any) => {
-        log(`Sending back term`, "info")
+        //log(`Sending back term`, "info")
         ws.send(JSON.stringify(
             {
                 "action": "device-stream-terminal",
@@ -72,7 +72,7 @@ ws.on('message', function message(data) {
     let msg = JSON.parse(data.toString());
     switch(msg.action) {
         case "device-stream-terminal": {
-            log(`Received device-stream-terminal: ${msg.payload.data}, ${typeof term}`, "info")
+            //log(`Received device-stream-terminal: ${msg.payload.data}, ${typeof term}`, "info")
             term?.write(Buffer.from(msg.payload.data, 'base64').toString('ascii'));
         } break;
     }
