@@ -1,0 +1,1 @@
+export const PROLINUXD_DIR = '/opt/prolinuxd/';
