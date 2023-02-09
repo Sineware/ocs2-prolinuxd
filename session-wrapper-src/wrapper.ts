@@ -60,7 +60,7 @@ ws.on('open', function open() {
             {
                 "action": "device-stream-terminal",
                 "payload": {
-                    data: data.toString('base64')
+                    data: Buffer.from(data).toString('base64')
                 }
             }
         ));
