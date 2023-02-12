@@ -1,2 +1,2 @@
 # ProLinux Settings
-Kirigami-based GUI for configuring ProLinuxD.
+Simple UI for configuring ProLinuxD.

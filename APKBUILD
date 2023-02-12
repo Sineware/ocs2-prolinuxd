@@ -15,7 +15,7 @@ makedepends="
     bash
 	"
 source="https://github.com/Sineware/ocs2-prolinuxd/archive/refs/heads/main.zip"
-options="net"
+options="net !fhs"
 
 build() {
     npm ci
@@ -29,6 +29,6 @@ package() {
 
     cp distro-files/prolinuxd "$pkgdir/opt/prolinuxd/"
     cp distro-files/prolinuxd.initd "$pkgdir/etc/init.d/prolinuxd"
-    cp distro-files/prolinux.toml "$pkgdir/opt/prolinuxd/"
+    cp distro-files/prolinux.toml "$pkgdir/opt/prolinuxd/prolinux-default.toml"
     cp distro-files/session-wrapper.desktop "$pkgdir/opt/prolinuxd/"
 }

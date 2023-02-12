@@ -12,20 +12,30 @@ log.info("Starting Sineware ProLinuxD... 🚀");
 
 export let cloud: OCS2Connection;
 export let localSocket: any;
-export let config: {
+export let config = {
     prolinuxd : {
-        modules: string[]
+        modules: [
+            "plasma-mobile-nightly", 
+            "ocs2"
+        ]
     },
     ocs2: {
-        gateway_url: string,
-        access_token: string
+        gateway_url: "wss://update.sineware.ca/gateway",
+        access_token: ""
     }
 }
 
 async function main() {
     // Read configuration file
-    config = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
-    log.info("Configuration file loaded!");
+    try {
+        config = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
+        log.info("Configuration file loaded!");
+    } catch(e) {
+        console.log(e);
+        console.log("Resetting to default configuration file...");
+        let tomlConfig = TOML.stringify(config)
+        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), tomlConfig, "utf-8");
+    }
 
     try{
         fs.unlinkSync("/tmp/prolinuxd.sock");
