@@ -7,11 +7,12 @@ url="https://sineware.ca/"
 license="GPL-2.0"
 depends="
 	nodejs
-    npm
+    bash
 	"
 makedepends="
     nodejs
     npm
+    bash
 	"
 source="https://github.com/Sineware/ocs2-prolinuxd/archive/refs/heads/main.zip"
 options="net"

@@ -13,6 +13,7 @@ export interface APIOrganization {
 
 export class OCS2Connection {
     ready: boolean = false;
+    connected: boolean = false;
     ws?: WebSocket;
     uuid?: string;
     
@@ -21,8 +22,9 @@ export class OCS2Connection {
     }
     startCloudConnection() {
         this.ws = new WebSocket(config.ocs2.gateway_url);
-        this.ws.on('open', function open() { 
+        this.ws.on('open', () => { 
             log.info("Connected to the Sineware Cloud Gateway!");
+            this.connected = true;
         });
         this.ws.on('message', async (data) => {
             let msg = JSON.parse(data.toString());
@@ -73,6 +75,11 @@ export class OCS2Connection {
     };
 
     callWS(action: string, payload: any, promise: boolean = true): Promise<any> {
+        if(!this.connected) {
+            return new Promise((resolve, reject) => {
+                resolve({})
+            });
+        }
         return new Promise ((resolve, reject) => {
             let id = uuidv4();
             let msg = { action, payload, id };
