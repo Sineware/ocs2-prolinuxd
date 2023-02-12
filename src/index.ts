@@ -33,8 +33,10 @@ async function main() {
     } catch(e) {
         console.log(e);
         console.log("Resetting to default configuration file...");
-        let tomlConfig = TOML.stringify(config)
-        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), tomlConfig, "utf-8");
+        let tomlConfig = TOML.stringify(config, {
+            newline: "\n"
+        });
+        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
     }
 
     try{
@@ -96,7 +98,7 @@ async function main() {
                     if(reachable) {
                         cloud = new OCS2Connection();
                     } else {
-                        if(attempts >= 10) {
+                        if(attempts >= 100) {
                             log.error("Could not connect to Sineware Cloud Services, giving up.");
                         } else {
                             log.info("Could not connect to Sineware Cloud Services, retrying in 5 seconds...");
