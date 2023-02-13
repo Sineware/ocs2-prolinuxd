@@ -1,5 +1,5 @@
 pkgname=prolinuxd
-pkgver=1.0.0
+pkgver=1.0.0_git$GIT_VERNUM
 pkgrel=0
 pkgdesc="Sineware Cloud Daemon for ProLinux"
 arch="all !ppc64le !s390x !armhf !riscv64"
@@ -25,6 +25,7 @@ build() {
 package() {
     mkdir -p "$pkgdir/opt/prolinuxd"
     mkdir -p "$pkgdir/etc/init.d"
+    mkdir -p "$pkgdir/usr/share/applications"
     cp -r dist/* "$pkgdir/opt/prolinuxd/"
 
     cp distro-files/prolinuxd "$pkgdir/opt/prolinuxd/"
