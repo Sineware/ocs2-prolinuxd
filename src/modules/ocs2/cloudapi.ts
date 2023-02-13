@@ -27,49 +27,56 @@ export class OCS2Connection {
             this.connected = true;
         });
         this.ws.on('message', async (data) => {
-            let msg = JSON.parse(data.toString());
-            console.log(msg) // temp
-            if(msg.action === "hello" && msg.payload.status) {
-                let machineID = fs.readFileSync("/etc/machine-id", "utf-8").trim();
-                let hostname = fs.readFileSync("/etc/hostname", "utf-8").trim();
-
-                this.uuid = machineID;
-                
-                let org: APIOrganization = await this.callWS("device-hello", { 
-                    clientType: "prolinux",
-                    accessToken: config.ocs2.access_token,
-                    uuid: machineID,
-                    name: hostname
-                });
-                console.log(org);
-                setInterval(() => {
-                    this.callWS("ping", {text: ""}, false);
-                }, 10000);
-                this.ready = true;
-            } else if(msg.action === "device-stream-terminal") {
-                if(!msg.payload.fromDevice) {
-                    localSocket.clients.forEach((client: any) => {
-                        console.log("Sending message to client: " + msg.payload.text)
-                        client.send(JSON.stringify({
-                            action: "device-stream-terminal",
-                            payload: {
-                                data: msg.payload.text
-                            }
-                        }));
-                    });
+            try {
+                let msg = JSON.parse(data.toString());
+                if(msg.payload?.forAction !== "ping" && msg.action !== "device-stream-terminal") {
+                    console.log(msg);
                 }
+                if(msg.action === "hello" && msg.payload.status) {
+                    let machineID = fs.readFileSync("/etc/machine-id", "utf-8").trim();
+                    let hostname = fs.readFileSync("/etc/hostname", "utf-8").trim();
+
+                    this.uuid = machineID;
+                    
+                    let org: APIOrganization = await this.callWS("device-hello", { 
+                        clientType: "prolinux,plasma-mobile-nightly",
+                        accessToken: config.ocs2.access_token,
+                        uuid: machineID,
+                        name: hostname
+                    });
+                    log.info(JSON.stringify(org));
+                    setInterval(() => {
+                        this.callWS("ping", {text: ""}, false);
+                    }, 10000);
+                    this.ready = true;
+                } else if(msg.action === "device-stream-terminal") {
+                    if(!msg.payload.fromDevice) {
+                        localSocket.clients.forEach((client: any) => {
+                            //console.log("Sending message to client: " + msg.payload.text)
+                            client.send(JSON.stringify({
+                                action: "device-stream-terminal",
+                                payload: {
+                                    data: msg.payload.text
+                                }
+                            }));
+                        });
+                    }
+                }
+            } catch(e) {
+                log.error("Error while parsing message from Sineware Cloud Gateway: " + e);
             }
         });
         this.ws.on('error', (err) => {
-            console.log(err);
+            log.info("Error while connecting to Sineware Cloud Gateway: " + err.message);
+            console.error(err);
             // try to reconnect
-            console.log("Reconnecting...");
+            console.log("Reconnecting... " + err.message);
             this.startCloudConnection();
         });
         this.ws.on('close', (code, reason) => {
-            console.log("Connection closed: " + code + " " + reason);
+            console.error("Connection closed: " + code + " " + reason);
             // try to reconnect
-            console.log("Reconnecting...");
+            console.log("Reconnecting..." + reason);
             this.startCloudConnection();
         });
     };
@@ -99,6 +106,7 @@ export class OCS2Connection {
               this.ws?.addEventListener("message", listener);
             }
             this.ws?.send(JSON.stringify(msg));
+            if(!promise) resolve({});
         });
     }
 }

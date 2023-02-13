@@ -31,4 +31,6 @@ package() {
     cp distro-files/prolinuxd.initd "$pkgdir/etc/init.d/prolinuxd"
     cp distro-files/prolinux.toml "$pkgdir/opt/prolinuxd/prolinux-default.toml"
     cp distro-files/session-wrapper.desktop "$pkgdir/opt/prolinuxd/"
+    cp distro-files/app-icon.png "$pkgdir/opt/prolinuxd"
+    cp distro-files/prolinux-config.desktop "$pkgdir/usr/share/applications"
 }

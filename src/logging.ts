@@ -1,4 +1,6 @@
+import * as fs from "node:fs"
 import { cloud } from ".";
+import { runCmd } from "./helpers/runCmd";
 export const logBuffer: string[] = [];
 export function logger(msg: string, type: string, from: string = "prolinuxd") {
     if (logBuffer.length > 1024) {
@@ -16,6 +18,9 @@ export function logger(msg: string, type: string, from: string = "prolinuxd") {
                 msg
             }
         }));
+    } else {
+        // todo plasma-mobile-nightly only
+        fs.appendFileSync("/dev/tty1", `[prolinuxd] [${type}] ${msg}\n`);
     }
     console.log(`[prolinuxd] [${type}] ${msg}`);
 }

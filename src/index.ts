@@ -13,7 +13,7 @@ log.info("Starting Sineware ProLinuxD... 🚀");
 export let cloud: OCS2Connection;
 export let localSocket: any;
 export let config = {
-    prolinuxd : {
+    prolinuxd: {
         modules: [
             "plasma-mobile-nightly", 
             "ocs2"
@@ -21,6 +21,7 @@ export let config = {
     },
     ocs2: {
         gateway_url: "wss://update.sineware.ca/gateway",
+        client_type: "prolinux,plasma-mobile-nightly",
         access_token: ""
     }
 }
@@ -63,6 +64,14 @@ async function main() {
                             text: msg.payload.data
                         }, false);
                     } break;
+                    case "set-token":  {
+                        config.ocs2.access_token = msg.payload.token;
+                        let tomlConfig = TOML.stringify(config, {
+                            newline: "\n"
+                        });
+                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                    } break;
+
                 }
             } catch(e) {
                 console.log(e);
@@ -86,7 +95,7 @@ async function main() {
     
         // Start Plasma Mobile Nightly Module
         if(config.prolinuxd.modules.includes("plasma-mobile-nightly")) {
-            console.log("Starting Plasma Mobile Nightly Module...");
+            log.info("Starting Plasma Mobile Nightly Module...");
             await loadPlasmaMobileNightlyModule();
         }
         

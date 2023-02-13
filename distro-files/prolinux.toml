@@ -6,4 +6,5 @@ modules = [
 
 [ocs2]
 gateway_url = "wss://update.sineware.ca/gateway"
+client_type = "prolinux,plasma-mobile-nightly"
 access_token = ""
