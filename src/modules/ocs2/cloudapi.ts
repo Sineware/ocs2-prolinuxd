@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 import fs from 'node:fs';
 import { log } from "../../logging";
 import { config, localSocket } from '../../index';
+import { spawn } from 'node:child_process';
 
 export interface APIOrganization {
     id: number;
@@ -23,7 +24,6 @@ export interface DeviceExecPayload {
 }
 
 async function spawnChild(command: string): Promise<{data: string, exitCode: number}> {
-    const { spawn } = require('child_process');
     const child = spawn('/bin/sh', ["-c", command]);
 
     let data = "";
