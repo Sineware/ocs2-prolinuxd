@@ -98,7 +98,6 @@ async function main() {
             log.info("Starting Plasma Mobile Nightly Module...");
             await loadPlasmaMobileNightlyModule();
         }
-        
         if(config.prolinuxd.modules.includes("ocs2") && config.ocs2?.access_token !== "") {
             log.info("Connecting to Sineware Cloud...");
             let attempts = 0;

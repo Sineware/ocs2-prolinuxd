@@ -1,6 +1,5 @@
 import * as fs from "node:fs"
 import { cloud } from ".";
-import { runCmd } from "./helpers/runCmd";
 export const logBuffer: string[] = [];
 export function logger(msg: string, type: string, from: string = "prolinuxd") {
     if (logBuffer.length > 1024) {

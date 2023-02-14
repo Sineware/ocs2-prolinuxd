@@ -11,6 +11,37 @@ export interface APIOrganization {
     tier: string;
 }
 
+export interface DeviceExecPayload {
+    deviceUUID: string;
+    fromDevice: boolean;
+    fromUUID: string;
+    idWrapper?: string;
+    command: string
+
+    data?: string
+    exitCode?: string
+}
+
+async function spawnChild(command: string): Promise<{data: string, exitCode: number}> {
+    const { spawn } = require('child_process');
+    const child = spawn('/bin/sh', ["-c", command]);
+
+    let data = "";
+    for await (const chunk of child.stdout) {
+        console.log('stdout chunk: '+chunk);
+        data += chunk;
+    }
+    for await (const chunk of child.stderr) {
+        console.error('stderr chunk: '+chunk);
+        data += chunk;
+    }
+    const exitCode: number = await new Promise( (resolve, reject) => {
+        child.on('close', resolve);
+    });
+    return {data, exitCode};
+}
+
+
 export class OCS2Connection {
     ready: boolean = false;
     connected: boolean = false;
@@ -60,6 +91,20 @@ export class OCS2Connection {
                                 }
                             }));
                         });
+                    }
+                } else if(msg.action === "device-exec") {
+                    let payload = msg.payload as DeviceExecPayload;
+                    if(!payload.fromDevice) {
+                        let {data, exitCode} = await spawnChild(payload.command);
+                        this.callWS("device-exec", {
+                            deviceUUID: payload.deviceUUID,
+                            fromDevice: true,
+                            fromUUID: payload.fromUUID,
+                            idWrapper: payload.idWrapper,
+                            command: payload.command,
+                            data,
+                            exitCode: exitCode.toString()
+                        }, false);
                     }
                 }
             } catch(e) {
