@@ -58,7 +58,7 @@ function connectWS(): Promise<void> {
                 rows: 30,
                 cwd: process.env.HOME,
                 //@ts-ignore
-                env: process.env
+                env: {...process.env, WAYLAND_DISPLAY: "wayland-0"}
             });
             term.onData((data: any) => {
                 //log(`Sending back term`, "info")
