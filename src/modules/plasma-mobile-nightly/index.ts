@@ -17,6 +17,18 @@ export async function loadPlasmaMobileNightlyModule() {
                 }).join('\n')
             );
         }
+
+        // Enable core dumps
+        await runCmd("/bin/sh", ["-c", "echo '/tmp/core.%e.%p' | tee /proc/sys/kernel/core_pattern"]);
+        let profile = fs.readFileSync("/home/user/.profile", "utf8");
+        if (!profile.includes("ulimit -c unlimited")) {
+            fs.appendFileSync("/home/user/.profile", "ulimit -c unlimited");
+        }
+        let limits = fs.readFileSync("/etc/security/limits.conf", "utf8");
+        if (!limits.includes("core unlimited")) {
+            fs.appendFileSync("/etc/security/limits.conf", "* soft core unlimited\n* hard core unlimited");
+        }
+
     } catch(e) {
         log.error("Failed to load Plasma Mobile Nightly module: " + e);
     }
