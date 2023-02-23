@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 USER=user
-HOST=172.16.42.1
+HOST=192.168.2.185
 DIR=/opt/prolinuxd/
 
 #swift build -c release --static-swift-stdlib

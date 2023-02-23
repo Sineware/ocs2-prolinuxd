@@ -13,6 +13,7 @@ makedepends="
     nodejs
     npm
     bash
+    git
 	"
 source="https://github.com/Sineware/ocs2-prolinuxd/archive/refs/heads/main.zip"
 options="net !fhs"
@@ -34,7 +35,7 @@ package() {
     cp distro-files/prolinux.toml "$pkgdir/opt/prolinuxd/prolinux-default.toml"
     cp distro-files/session-wrapper.desktop "$pkgdir/opt/prolinuxd/"
     cp distro-files/app-icon.png "$pkgdir/opt/prolinuxd/"
-    
+
     cp distro-files/prolinux-config.desktop "$pkgdir/usr/share/applications/"
     cp distro-files/plctl "$pkgdir/usr/sbin/"
 }

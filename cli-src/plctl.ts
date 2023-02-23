@@ -153,14 +153,65 @@ coredump.command('clear')
         console.log("Coredumps cleared");
     });
 /* ----------- */
-program.command('nightly-build')
-    .description('(plasma-mobile-nightly) locally rebuild a package, including with a custom git repo/branch')
+const nightlyBuild = program.command('nightly-build').description('(plasma-mobile-nightly) create and manage local custom builds and packages ')
+nightlyBuild
+    .command('prepare')
+    .description('setup the alpine abuild environment (run this first, once)')
+    .action(async (str, options) => {
+        if(!isRoot()) {
+            console.error("You must be root to run this command.");
+            process.exit(1);
+        }
+        console.log("-------------------------------------------------");
+        console.log("Installing alpine-sdk and ccache...");
+        console.log((await spawnChild("apk add alpine-sdk ccache")).data);
+        console.log("Generating abuild key...")
+        console.log((await spawnChild("abuild-keygen -a -i -n")).data);
+    });
+nightlyBuild
+    .command('package')
+    .description('locally rebuild a package, including with a custom git repo/branch')
     .argument('<package>', 'package name (must be in the plasma-mobile-nightly repo)')
     .argument('[repo]', 'alternative git repo to use', null)
     .argument('[branch]', 'alternative git branch to use', null)
-    .action((str, options) => {
+    .action((pkg, repo, branch) => {
         console.log("-------------------------------------------------");
-        console.log("Not implemented");
+        if(!isRoot()) {
+            console.error("You must be root to run this command.");
+            process.exit(1);
+        }
+        let env = {
+            ...process.env,
+            cwd: "/opt/prolinuxd/plasma-mobile-nightly",
+            BUILD_SINGLE_PACKAGE: pkg,
+            BUILD_SINGLE_PACKAGE_REPO: undefined,
+            BUILD_SINGLE_PACKAGE_BRANCH: undefined
+        }
+        if(repo)
+            env.BUILD_SINGLE_PACKAGE_REPO = repo;
+        if(branch)
+            env.BUILD_SINGLE_PACKAGE_BRANCH = branch;
+        let script = spawn("/usr/bin/node", ["/opt/prolinuxd/plasma-mobile-nightly/index.js"], { 
+            stdio: "inherit",
+            env
+        });
+        script.on("exit", (code: any) => {
+            console.log("Build script exited with code " + code);
+            console.log(`Now you can run 'sudo apk add ${pkg}' to install the built package!`)
+            process.exit(code);
+        });
+    });
+nightlyBuild
+    .command('clean')
+    .description('clean the build directory')
+    .action(async (str, options) => {
+        if(!isRoot()) {
+            console.error("You must be root to run this command.");
+            process.exit(1);
+        }
+        let data = await spawnChild("rm -rfv /opt/prolinuxd/plasma-mobile-nightly/workdir/prolinux-nightly");
+        console.log(data.data);
+        console.log("Cleaned build directory.");
     });
 
 program.command('restart')
