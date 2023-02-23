@@ -26,13 +26,15 @@ package() {
     mkdir -p "$pkgdir/opt/prolinuxd"
     mkdir -p "$pkgdir/etc/init.d"
     mkdir -p "$pkgdir/usr/share/applications"
+    mkdir -p "$pkgdir/usr/sbin"
     cp -r dist/* "$pkgdir/opt/prolinuxd/"
 
     cp distro-files/prolinuxd "$pkgdir/opt/prolinuxd/"
     cp distro-files/prolinuxd.initd "$pkgdir/etc/init.d/prolinuxd"
     cp distro-files/prolinux.toml "$pkgdir/opt/prolinuxd/prolinux-default.toml"
     cp distro-files/session-wrapper.desktop "$pkgdir/opt/prolinuxd/"
-    cp distro-files/app-icon.png "$pkgdir/opt/prolinuxd"
+    cp distro-files/app-icon.png "$pkgdir/opt/prolinuxd/"
+    
     cp distro-files/prolinux-config.desktop "$pkgdir/usr/share/applications/"
     cp distro-files/plctl "$pkgdir/usr/sbin/"
 }
