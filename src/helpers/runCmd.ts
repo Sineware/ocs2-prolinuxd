@@ -1,7 +1,8 @@
 import { spawn } from "child_process";
+import {log} from "../logging";
 
 export async function runCmd(cmd: string, args: string[]): Promise<string> {
-    console.log(`About to exec: ${cmd} ${args.join(" ")}`);
+    log.info(`About to exec: ${cmd} ${args.join(" ")}`);
     return new Promise((resolve, reject) => {
         const proc = spawn(cmd, args);
         let stdout = "";

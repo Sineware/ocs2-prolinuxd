@@ -10,6 +10,7 @@ rsync -avz --delete distro-files/prolinuxd.initd ${USER}@${HOST}:${DIR}
 rsync -avz --delete distro-files/session-wrapper.desktop ${USER}@${HOST}:${DIR}
 #rsync -avz --delete distro-files/prolinux.toml ${USER}@${HOST}:${DIR}
 rsync -avz --delete distro-files/prolinuxd ${USER}@${HOST}:${DIR}
+rsync -avz --delete distro-files/plctl ${USER}@${HOST}:${DIR}
 rsync -avz --delete distro-files/aarch64-alpine-pty.node ${USER}@${HOST}:${DIR}/session-wrapper/build/Release/pty.node
 rsync -avz --delete distro-files/prolinux-config.desktop ${USER}@${HOST}:${DIR}
 rsync -avz --delete distro-files/app-icon.png ${USER}@${HOST}:${DIR}

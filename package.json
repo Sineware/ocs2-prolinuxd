@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
     "build_app": "ncc build app-src/prolinux-config.ts --v8-cache -m -o dist/prolinux-config",
-    "build": "ncc build session-wrapper-src/wrapper.ts --v8-cache -m -o dist/session-wrapper && ncc build src/index.ts --v8-cache -m -o dist/ && npm run build_app"
+    "build_cli": "ncc build cli-src/plctl.ts --v8-cache -m -o dist/prolinux-cli",
+    "build": "ncc build session-wrapper-src/wrapper.ts --v8-cache -m -o dist/session-wrapper && ncc build src/index.ts --v8-cache -m -o dist/ && npm run build_app && npm run build_cli"
   },
   "author": "Seshan Ravikumar",
   "license": "GPL-2.0",

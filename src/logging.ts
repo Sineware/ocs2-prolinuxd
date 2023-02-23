@@ -27,4 +27,5 @@ export const log = {
     info: (msg: string) => logger(msg, "info"),
     error: (msg: string) => logger(msg, "error"),
     debug: (msg: string) => logger(msg, "debug"),
+    getLogs: () => logBuffer
 }

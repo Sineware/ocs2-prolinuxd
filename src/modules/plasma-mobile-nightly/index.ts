@@ -8,6 +8,7 @@ export async function loadPlasmaMobileNightlyModule() {
         await runCmd("/usr/bin/tinydm-set-session", ["-f", "-s", "/usr/share/wayland-sessions/prolinux-session-wrapper.desktop"])
 
         // Allow NetworkManager to autoconnect to networks
+        log.info("Removing permissions line from NM connections (fix wifi autoconnect)...")
         let connections = fs.readdirSync("/etc/NetworkManager/system-connections");
         for (const c of connections) {
             let file = fs.readFileSync("/etc/NetworkManager/system-connections/" + c, "utf8");
@@ -19,6 +20,7 @@ export async function loadPlasmaMobileNightlyModule() {
         }
 
         // Enable core dumps
+        log.info("Enabling core dumps...");
         await runCmd("/bin/sh", ["-c", "echo '/tmp/core.%e.%p' | tee /proc/sys/kernel/core_pattern"]);
         let profile = fs.readFileSync("/home/user/.profile", "utf8");
         if (!profile.includes("ulimit -c unlimited")) {
