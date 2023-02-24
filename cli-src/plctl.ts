@@ -184,6 +184,7 @@ nightlyBuild
             ...process.env,
             cwd: "/opt/prolinuxd/plasma-mobile-nightly",
             BUILD_SINGLE_PACKAGE: pkg,
+            DONT_DEPLOY: "true",
             BUILD_SINGLE_PACKAGE_REPO: undefined,
             BUILD_SINGLE_PACKAGE_BRANCH: undefined
         }
