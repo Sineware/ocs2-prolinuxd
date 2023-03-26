@@ -24,7 +24,9 @@ function log(msg: string, type: string) {
     console.log(`[prolinuxd-session-wrapper] ${msg}`);
 }
 function startPlasmaMobile() {
-    child = spawn("/usr/bin/startplasmamobile", []);
+    const sessionBin = process.env.SESSION_BIN ?? "/usr/bin/startplasmamobile"
+    log(`Starting session bin ${sessionBin}`, "info");
+    child = spawn(sessionBin, []);
 
     child.stdout.on("data", (data) => {
         log(data.toString(), "stdout");

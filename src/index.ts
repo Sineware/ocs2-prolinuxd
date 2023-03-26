@@ -37,6 +37,7 @@ async function main() {
         let tomlConfig = TOML.stringify(config, {
             newline: "\n"
         });
+        // todo check for a prolinux-default.toml
         fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
     }
 
@@ -81,6 +82,7 @@ async function main() {
                                     status: "ok",
                                     ocsConnnected: cloud?.connected ?? false,
                                     ocsReady: cloud?.ready ?? false,
+                                    modules: config.prolinuxd.modules
                                 }
                             },
                             id: msg.id ?? null
@@ -144,6 +146,9 @@ async function main() {
                 });
             }
             attemptCloudConnection();
+        }
+        if(config.prolinuxd.modules.includes("pl2")) {
+            log.info("Starting ProLinux 2 Module...");
         }
     });    
 }

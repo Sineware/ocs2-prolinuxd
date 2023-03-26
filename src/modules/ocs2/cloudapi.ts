@@ -70,7 +70,7 @@ export class OCS2Connection {
                     this.uuid = machineID;
                     
                     let org: APIOrganization = await this.callWS("device-hello", { 
-                        clientType: "prolinux,plasma-mobile-nightly",
+                        clientType: config.ocs2.client_type,
                         accessToken: config.ocs2.access_token,
                         uuid: machineID,
                         name: hostname
