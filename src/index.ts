@@ -23,6 +23,10 @@ export let config = {
         gateway_url: "wss://update.sineware.ca/gateway",
         client_type: "prolinux,plasma-mobile-nightly",
         access_token: ""
+    },
+    pl2: {
+        selected_root: "a",
+        locked_root: true
     }
 }
 
@@ -72,6 +76,20 @@ async function main() {
                         });
                         fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
                     } break;
+                    case "set-selected-root": {
+                        config.pl2.selected_root = msg.payload.selectedRoot;
+                        let tomlConfig = TOML.stringify(config, {
+                            newline: "\n"
+                        });
+                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                    };
+                    case "set-locked-root": {
+                        config.pl2.locked_root = msg.payload.lockedRoot;
+                        let tomlConfig = TOML.stringify(config, {
+                            newline: "\n"
+                        });
+                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                    };
                     case "status": {
                         socket.send(JSON.stringify({
                             action: "result",
@@ -82,7 +100,9 @@ async function main() {
                                     status: "ok",
                                     ocsConnnected: cloud?.connected ?? false,
                                     ocsReady: cloud?.ready ?? false,
-                                    modules: config.prolinuxd.modules
+                                    modules: config.prolinuxd.modules,
+                                    selectedRoot: config.pl2.selected_root,
+                                    lockedRoot: config.pl2.locked_root
                                 }
                             },
                             id: msg.id ?? null

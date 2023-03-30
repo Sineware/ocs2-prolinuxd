@@ -10,7 +10,7 @@
     "build_cli": "ncc build cli-src/plctl.ts --v8-cache -m -o dist/prolinux-cli",
     "clone_plamo_nightly": "if cd plasma-mobile-nightly; then git pull; else git clone https://github.com/Sineware/plasma-mobile-nightly.git; fi",
     "build_plama_nightly": "ncc build plasma-mobile-nightly/src/index.ts --v8-cache -m -o dist/plasma-mobile-nightly",
-    "build": "ncc build session-wrapper-src/wrapper.ts --v8-cache -m -o dist/session-wrapper && ncc build src/index.ts --v8-cache -m -o dist/ && npm run build_app && npm run build_cli && npm run clone_plamo_nightly && npm run build_plama_nightly"
+    "build": "ncc build session-wrapper-src/wrapper.ts --v8-cache -m -o dist/session-wrapper && ncc build src/index.ts --v8-cache -m -o dist/ && npm run build_app && npm run build_cli"
   },
   "author": "Seshan Ravikumar",
   "license": "GPL-2.0",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@ltd/j-toml": "^1.37.0",
+    "axios": "^1.3.4",
     "commander": "^10.0.0",
     "dotenv": "^16.0.3",
     "is-reachable": "^5.2.1",
