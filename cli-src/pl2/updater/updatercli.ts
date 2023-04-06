@@ -61,5 +61,26 @@ export async function registerPL2Commands(program: Command) {
             console.log("  - No update available.");
         }
     });
+
+    // Root Lock
+    program.command('root-lock')
+        .argument('<state>', 'on/off')
+        .description('Set the root lock on/off (immutable overlay)')
+        .action(async (str, options) => {
+            if(str == "on") {
+                await callWS("set-locked-root", { lockedRoot: true }, true);
+            } else if(str == "off") {
+                await callWS("set-locked-root", { lockedRoot: false }, true);
+            } else {
+                console.log("Invalid state. Must be on or off.");
+                return;
+            }
+            console.log("Done! Reboot your device to apply the changes.")
+        });
+    program.command('reset-writable')
+        .description('Reset the writable overlay')
+        .action(async (str, options) => {
+            console.log("Not implemented yet.");
+        });
 }
 // sudo zsync http://espi.sineware.ca/repo/prolinux/mobile/dev/arm64/prolinux-root-mobile-dev.squish.zsync -o ~/prolinux_b.squish
