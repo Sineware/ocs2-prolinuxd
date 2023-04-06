@@ -51,7 +51,7 @@ export async function registerPL2Commands(program: Command) {
             }
             console.log("  - Installing to slot: " + newRoot);
             console.log("  - Downloading...");
-            exec(`cd /sineware && sudo zsync https://espi.sineware.ca/${info.product}/${info.variant}/${info.channel}/${res.data.arch}/${info.filename}.zsync -o /sineware/prolinux_${newRoot}.squish`);
+            exec(`cd /sineware && sudo zsync http://router.sineware.ca/repo/${info.product}/${info.variant}/${info.channel}/${res.data.arch}/${info.filename}.zsync -o /sineware/prolinux_${newRoot}.squish`);
             console.log("  - Downloaded!");
             // todo verify jwt
             console.log("  - Updating system configuration...");
