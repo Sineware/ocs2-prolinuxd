@@ -7,6 +7,7 @@ import * as TOML from '@ltd/j-toml';
 import { log, logger } from "./logging";
 import { OCS2Connection } from "./modules/ocs2/cloudapi";
 import {loadPlasmaMobileNightlyModule} from "./modules/plasma-mobile-nightly";
+import { loadPL2Module } from "./modules/pl2";
 
 log.info("Starting Sineware ProLinuxD... 🚀"); 
 
@@ -16,7 +17,8 @@ export let config = {
     prolinuxd: {
         modules: [
             "plasma-mobile-nightly", 
-            "ocs2"
+            "ocs2",
+            "pl2"
         ]
     },
     ocs2: {
@@ -26,7 +28,8 @@ export let config = {
     },
     pl2: {
         selected_root: "a",
-        locked_root: true
+        locked_root: true,
+        hostname: ""
     }
 }
 
@@ -35,6 +38,7 @@ async function main() {
     try {
         config = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
         log.info("Configuration file loaded!");
+        log.info(JSON.stringify(config, null, 4));
     } catch(e) {
         console.log(e);
         console.log("Resetting to default configuration file...");
@@ -55,6 +59,12 @@ async function main() {
     // Local websocket server (/tmp/prolinuxd.sock)
     wss.on("connection", (socket) => {
         log.info("Client connected to ProLinuxD!");
+        const saveConfig = () => {
+            let tomlConfig = TOML.stringify(config, {
+                newline: "\n"
+            });
+            fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+        }
         socket.on("message", (data) => {
             try {
                 let msg = JSON.parse(data.toString());
@@ -71,24 +81,19 @@ async function main() {
                     } break;
                     case "set-token":  {
                         config.ocs2.access_token = msg.payload.token;
-                        let tomlConfig = TOML.stringify(config, {
-                            newline: "\n"
-                        });
-                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                        saveConfig();
                     } break;
                     case "set-selected-root": {
                         config.pl2.selected_root = msg.payload.selectedRoot;
-                        let tomlConfig = TOML.stringify(config, {
-                            newline: "\n"
-                        });
-                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                        saveConfig();
                     };
                     case "set-locked-root": {
                         config.pl2.locked_root = msg.payload.lockedRoot;
-                        let tomlConfig = TOML.stringify(config, {
-                            newline: "\n"
-                        });
-                        fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
+                        saveConfig();
+                    };
+                    case "set-hostname": {
+                        config.pl2.hostname = msg.payload.hostname;
+                        saveConfig();
                     };
                     case "status": {
                         socket.send(JSON.stringify({
@@ -102,8 +107,10 @@ async function main() {
                                     ocsReady: cloud?.ready ?? false,
                                     modules: config.prolinuxd.modules,
                                     selectedRoot: config.pl2.selected_root,
-                                    lockedRoot: config.pl2.locked_root
-                                }
+                                    lockedRoot: config.pl2.locked_root,
+                                    hostname: config.pl2.hostname
+                                },
+                                config: config
                             },
                             id: msg.id ?? null
                         }));
@@ -169,6 +176,7 @@ async function main() {
         }
         if(config.prolinuxd.modules.includes("pl2")) {
             log.info("Starting ProLinux 2 Module...");
+            await loadPL2Module();
         }
     });    
 }
