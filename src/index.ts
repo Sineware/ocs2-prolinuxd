@@ -8,6 +8,7 @@ import { log, logger } from "./logging";
 import { OCS2Connection } from "./modules/ocs2/cloudapi";
 import {loadPlasmaMobileNightlyModule} from "./modules/plasma-mobile-nightly";
 import { loadPL2Module } from "./modules/pl2";
+import { getProLinuxInfo } from "./helpers/getProLinuxInfo";
 
 log.info("Starting Sineware ProLinuxD... 🚀"); 
 
@@ -65,9 +66,10 @@ async function main() {
             });
             fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
         }
-        socket.on("message", (data) => {
+        socket.on("message", async (data) => {
             try {
                 let msg = JSON.parse(data.toString());
+                console.log("[Local] Received message: " + JSON.stringify(msg));
                 switch(msg.action) {
                     case "log": {
                         logger(msg.payload.msg, msg.payload.type, msg.payload.from);
@@ -96,6 +98,7 @@ async function main() {
                         saveConfig();
                     };
                     case "status": {
+                        console.log("Sending status...")
                         socket.send(JSON.stringify({
                             action: "result",
                             payload: {
@@ -108,7 +111,8 @@ async function main() {
                                     modules: config.prolinuxd.modules,
                                     selectedRoot: config.pl2.selected_root,
                                     lockedRoot: config.pl2.locked_root,
-                                    hostname: config.pl2.hostname
+                                    hostname: config.pl2.hostname,
+                                    buildInfo: await getProLinuxInfo()
                                 },
                                 config: config
                             },
