@@ -4,16 +4,30 @@ import path from "node:path";
 import { WebSocket } from "ws";
 import isReachable from "is-reachable";
 import * as TOML from '@ltd/j-toml';
+import axios from "axios";
 import { log, logger } from "./logging";
 import { OCS2Connection } from "./modules/ocs2/cloudapi";
-import {loadPlasmaMobileNightlyModule} from "./modules/plasma-mobile-nightly";
 import { loadPL2Module } from "./modules/pl2";
 import { getProLinuxInfo } from "./helpers/getProLinuxInfo";
+import { LocalActions } from "./constants";
 
 log.info("Starting Sineware ProLinuxD... 🚀"); 
 
+interface LocalWSMessage {
+    action: LocalActions,
+    payload: any,
+    id?: string | null
+}
+
 export let cloud: OCS2Connection;
 export let localSocket: any;
+export const localSocketBroadcast = (msg: LocalWSMessage) => {
+    localSocket.clients.forEach((client: any) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(msg));
+        }
+    });
+}
 export let config = {
     prolinuxd: {
         modules: [
@@ -66,43 +80,61 @@ async function main() {
             });
             fs.writeFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), Buffer.from(tomlConfig), "utf-8");
         }
+        const reply = (msg: LocalWSMessage) => {
+             socket.send(JSON.stringify(msg));
+        }
         socket.on("message", async (data) => {
             try {
                 let msg = JSON.parse(data.toString());
+                const replyResult = (forAction: LocalActions, status: boolean, data: any) => { 
+                    reply({
+                        action: LocalActions.RESULT,
+                        payload: {
+                            forAction: forAction,
+                            status: status,
+                            data: data
+                        },
+                        id: msg.id ?? null
+                    });
+                }
                 console.log("[Local] Received message: " + JSON.stringify(msg));
                 switch(msg.action) {
-                    case "log": {
+                    case LocalActions.LOG: {
                         logger(msg.payload.msg, msg.payload.type, msg.payload.from);
                     } break;
-                    case "device-stream-terminal": {
+                    case LocalActions.DEVICE_STREAM_TERMINAL: {
                         cloud?.callWS("device-stream-terminal", {
                             deviceUUID: cloud.uuid,
                             fromDevice: true,
                             text: msg.payload.data
                         }, false);
                     } break;
-                    case "set-token":  {
+                    case LocalActions.SET_TOKEN:  {
                         config.ocs2.access_token = msg.payload.token;
                         saveConfig();
+                        replyResult(LocalActions.SET_TOKEN, true, {});
                     } break;
-                    case "set-selected-root": {
+                    case LocalActions.SET_SELECTED_ROOT: {
                         config.pl2.selected_root = msg.payload.selectedRoot;
                         saveConfig();
+                        replyResult(LocalActions.SET_SELECTED_ROOT, true, {});
                     };
-                    case "set-locked-root": {
+                    case LocalActions.SET_LOCKED_ROOT: {
                         config.pl2.locked_root = msg.payload.lockedRoot;
                         saveConfig();
+                        replyResult(LocalActions.SET_LOCKED_ROOT, true, {});
                     };
-                    case "set-hostname": {
+                    case LocalActions.SET_HOSTNAME: {
                         config.pl2.hostname = msg.payload.hostname;
                         saveConfig();
+                        replyResult(LocalActions.SET_HOSTNAME, true, {});
                     };
-                    case "status": {
+                    case LocalActions.STATUS: {
                         console.log("Sending status...")
                         socket.send(JSON.stringify({
-                            action: "result",
+                            action: LocalActions.RESULT,
                             payload: {
-                                forAction: "status",
+                                forAction: LocalActions.STATUS,
                                 status: true,
                                 data: {
                                     status: "ok",
@@ -112,18 +144,18 @@ async function main() {
                                     selectedRoot: config.pl2.selected_root,
                                     lockedRoot: config.pl2.locked_root,
                                     hostname: config.pl2.hostname,
-                                    buildInfo: await getProLinuxInfo()
+                                    buildInfo: await getProLinuxInfo(),
+                                    config: config
                                 },
-                                config: config
                             },
                             id: msg.id ?? null
                         }));
                     } break;
-                    case "get-logs": {
+                    case LocalActions.GET_LOGS: {
                         socket.send(JSON.stringify({
-                            action: "result",
+                            action: LocalActions.RESULT,
                             payload: {
-                                forAction: "get-logs",
+                                forAction: LocalActions.GET_LOGS,
                                 status: true,
                                 data: {
                                     logs: log.getLogs()
@@ -131,6 +163,61 @@ async function main() {
                             },
                             id: msg.id ?? null
                         }));
+                    } break;
+                    case LocalActions.GET_UPDATE_INFO: {
+                        const info = await getProLinuxInfo();
+                        let res = await axios.get(`https://update.sineware.ca/updates/${info.product}/${info.variant}/${info.channel}`);
+                        socket.send(JSON.stringify({
+                            action: LocalActions.RESULT,
+                            payload: {
+                                forAction: LocalActions.GET_UPDATE_INFO,
+                                status: true,
+                                data: {
+                                    update: res.data,
+                                    updateAvailable: (res.data.buildnum > info.buildnum)
+                                }
+                            },
+                            id: msg.id ?? null
+                        }));
+                    } break;
+                    case LocalActions.START_UPDATE: {
+                        try {
+                            const info = await getProLinuxInfo();
+                            const newRoot = (config.pl2.selected_root === "a") ? "b" : "a";
+                            // Download the update from http://cdn.sineware.ca/repo/${info.product}/${info.variant}/${info.channel}/${res.data.arch}/${info.filename}.squish to /sineware/prolinux_${newRoot}.squish
+                            // and send update-progress events
+                            const {data, headers} = await axios({
+                                method: 'get',
+                                url: `http://cdn.sineware.ca/repo/${info.product}/${info.variant}/${info.channel}/${info.arch}/${info.filename}`,
+                                responseType: 'stream'
+                            });
+                            const totalLength = headers['content-length'];
+                            const writer = fs.createWriteStream(`/sineware/prolinux_${newRoot}.squish`);
+                            
+                            let progress = 0;
+                            data.on('data', (chunk: any) => {
+                                localSocketBroadcast({
+                                    action: LocalActions.UPDATE_PROGRESS,
+                                    payload: {
+                                        progress: progress += chunk.length,
+                                        total: totalLength,
+                                        newRoot: newRoot,
+                                        buildnum: info.buildnum,
+                                    }
+                                });
+
+                                if(progress == totalLength) {
+                                    config.pl2.selected_root = newRoot;
+                                    saveConfig();
+                                }
+                            });
+                            data.pipe(writer);
+                            replyResult(LocalActions.START_UPDATE, true, {});
+                        } catch(e: any) {
+                            replyResult(LocalActions.START_UPDATE, false, {
+                                msg: e.message
+                            });
+                        }
                     } break;
                 }
             } catch(e) {
@@ -153,11 +240,6 @@ async function main() {
         fs.chmodSync("/tmp/prolinuxd.sock", 666);
         log.info("ProLinuxD is listening on /tmp/prolinuxd.sock!");
     
-        // Start Plasma Mobile Nightly Module
-        if(config.prolinuxd.modules.includes("plasma-mobile-nightly")) {
-            log.info("Starting Plasma Mobile Nightly Module...");
-            await loadPlasmaMobileNightlyModule();
-        }
         if(config.prolinuxd.modules.includes("ocs2") && config.ocs2?.access_token !== "") {
             log.info("Connecting to Sineware Cloud...");
             let attempts = 0;
