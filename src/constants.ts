@@ -13,6 +13,7 @@ export enum LocalActions {
     START_UPDATE = "start-update",
     UPDATE_PROGRESS = "update-progress",
     RESULT = "result",
+    SET_DISABLE_KEXEC = "set-disable-kexec",
 }
 export interface ProLinuxInfo {
     buildnum: string,

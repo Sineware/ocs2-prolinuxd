@@ -44,7 +44,8 @@ export let config = {
     pl2: {
         selected_root: "a",
         locked_root: true,
-        hostname: ""
+        hostname: "",
+        disable_kexec: false
     }
 }
 
@@ -118,17 +119,22 @@ async function main() {
                         config.pl2.selected_root = msg.payload.selectedRoot;
                         saveConfig();
                         replyResult(LocalActions.SET_SELECTED_ROOT, true, {});
-                    };
+                    } break;
                     case LocalActions.SET_LOCKED_ROOT: {
                         config.pl2.locked_root = msg.payload.lockedRoot;
                         saveConfig();
                         replyResult(LocalActions.SET_LOCKED_ROOT, true, {});
-                    };
+                    } break;
                     case LocalActions.SET_HOSTNAME: {
                         config.pl2.hostname = msg.payload.hostname;
                         saveConfig();
                         replyResult(LocalActions.SET_HOSTNAME, true, {});
-                    };
+                    } break;
+                    case LocalActions.SET_DISABLE_KEXEC: {
+                        config.pl2.disable_kexec = msg.payload.disable_kexec;
+                        saveConfig();
+                        replyResult(LocalActions.SET_DISABLE_KEXEC, true, {});
+                    } break;
                     case LocalActions.STATUS: {
                         console.log("Sending status...")
                         socket.send(JSON.stringify({

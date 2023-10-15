@@ -93,5 +93,11 @@ export async function registerPL2Commands(program: Command) {
         .action(async (str, options) => {
             console.log("Not implemented yet.");
         });
+    program.command('disable-kexec')
+        .description('Disables Kexec boot - use the firmware kernel from /boot.')
+        .action(async (str, options) => {
+            await callWS(LocalActions.SET_DISABLE_KEXEC, { disableKexec: true }, true);
+            console.log("Done! Reboot your device to apply the changes.")
+        });
 }
 // sudo zsync http://espi.sineware.ca/repo/prolinux/mobile/dev/arm64/prolinux-root-mobile-dev.squish.zsync -o ~/prolinux_b.squish
