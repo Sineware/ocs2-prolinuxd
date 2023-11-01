@@ -153,7 +153,7 @@ async function main() {
                                     selectedRoot: config.pl2.selected_root,
                                     lockedRoot: config.pl2.locked_root,
                                     hostname: config.pl2.hostname,
-                                    disable_kexec: config.pl2.disable_kexec,
+                                    disableKexec: config.pl2.disable_kexec,
                                     buildInfo: await getProLinuxInfo(),
                                     config: config
                                 },
