@@ -117,6 +117,9 @@ async function main() {
             console.log("Cloud Ready (Authenticated): " + res.ocsReady);
             if((await isPL2())) console.log("Selected Root: " + res.selectedRoot);
             if((await isPL2())) console.log("Locked Root: " + res.lockedRoot);
+            if((await isPL2())) console.log("Hostname: " + res.hostname);
+            if((await isPL2())) console.log("KExec Disabled: " + res.disable_kexec);
+            if((await isPL2())) console.log("Build Info: " + res.buildInfo.product + " " + res.buildInfo.variant + " " + res.buildInfo.channel + " " + res.buildInfo.arch + " - " + res.buildInfo.buildnum + "," + res.buildInfo.uuid + " (" + res.buildInfo.builddate + ")");
             process.exit(0);
         });
 

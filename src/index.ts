@@ -5,6 +5,8 @@ import { WebSocket } from "ws";
 import isReachable from "is-reachable";
 import * as TOML from '@ltd/j-toml';
 import axios from "axios";
+import * as _ from "lodash";
+
 import { log, logger } from "./logging";
 import { OCS2Connection } from "./modules/ocs2/cloudapi";
 import { loadPL2Module } from "./modules/pl2";
@@ -52,7 +54,8 @@ export let config = {
 async function main() {
     // Read configuration file
     try {
-        config = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
+        const tomlConfig = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
+        config = _.merge(config, tomlConfig);
         log.info("Configuration file loaded!");
         log.info(JSON.stringify(config, null, 4));
     } catch(e) {
@@ -131,7 +134,7 @@ async function main() {
                         replyResult(LocalActions.SET_HOSTNAME, true, {});
                     } break;
                     case LocalActions.SET_DISABLE_KEXEC: {
-                        config.pl2.disable_kexec = msg.payload.disable_kexec;
+                        config.pl2.disable_kexec = msg.payload.disableKexec;
                         saveConfig();
                         replyResult(LocalActions.SET_DISABLE_KEXEC, true, {});
                     } break;
@@ -150,6 +153,7 @@ async function main() {
                                     selectedRoot: config.pl2.selected_root,
                                     lockedRoot: config.pl2.locked_root,
                                     hostname: config.pl2.hostname,
+                                    disable_kexec: config.pl2.disable_kexec,
                                     buildInfo: await getProLinuxInfo(),
                                     config: config
                                 },

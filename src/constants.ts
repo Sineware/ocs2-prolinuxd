@@ -23,7 +23,8 @@ export interface ProLinuxInfo {
     channel: string,
     builddate: string,
     filename: string,
-    arch: string
+    arch: string,
+    deviceinfoCodename: string
 }
 
 export interface RemoteUpdate {
