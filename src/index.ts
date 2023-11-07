@@ -229,9 +229,20 @@ async function main() {
                             });
                         }
                     } break;
+                    case LocalActions.DESCRIBE_API: {
+                        replyResult(LocalActions.DESCRIBE_API, true, {
+                            actions: LocalActions
+                        });
+                    } break;
                 }
-            } catch(e) {
+            } catch(e: any) {
                 console.log(e);
+                reply({
+                    action: LocalActions.ERROR,
+                    payload: {
+                        msg: e.message
+                    }
+                });
             }
         });
         socket.on("close", () => {

@@ -20,6 +20,8 @@ export async function setSSHHostKeys() {
 }
 export async function startDeviceSpecificServices() {
     const prolinuxInfo = await getProLinuxInfo();
+    log.info("Running on platform '" + prolinuxInfo.deviceinfoCodename + "'");
+
     const SDM845Devices = [
         "oneplus-enchilada",
         "xiaomi-beryllium",

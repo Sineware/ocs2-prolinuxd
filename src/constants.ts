@@ -1,6 +1,7 @@
 export const PROLINUXD_DIR = '/opt/prolinuxd/';
 export enum LocalActions {
     // Device actions
+    ERROR = "error",
     LOG = "log",
     DEVICE_STREAM_TERMINAL = "device-stream-terminal",
     SET_TOKEN = "set-token",
@@ -14,6 +15,7 @@ export enum LocalActions {
     UPDATE_PROGRESS = "update-progress",
     RESULT = "result",
     SET_DISABLE_KEXEC = "set-disable-kexec",
+    DESCRIBE_API = "describe-api",
 }
 export interface ProLinuxInfo {
     buildnum: string,
