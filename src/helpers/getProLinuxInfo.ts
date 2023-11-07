@@ -6,7 +6,7 @@ export async function getProLinuxInfo(): Promise<ProLinuxInfo> {
     const [buildnum, uuid, product, variant, channel, builddate, filename, arch] = prolinuxInfo.split(',');
 
     // read /sineware/deviceinfo_codename file, get the string
-    const deviceinfoCodename = fs.readFileSync('/sineware/deviceinfo_codename', 'utf8');
+    const deviceinfoCodename = fs.readFileSync('/sineware/deviceinfo_codename', 'utf8').trim();
 
     return {
         buildnum,
