@@ -5,7 +5,7 @@ import { WebSocket } from "ws";
 import isReachable from "is-reachable";
 import * as TOML from '@ltd/j-toml';
 import axios from "axios";
-import * as _ from "lodash";
+import deepExtend from "deep-extend";
 
 import { log, logger } from "./logging";
 import { OCS2Connection } from "./modules/ocs2/cloudapi";
@@ -47,7 +47,8 @@ export let config = {
         selected_root: "a",
         locked_root: true,
         hostname: "",
-        disable_kexec: false
+        disable_kexec: false,
+        remote_api: true
     }
 }
 
@@ -55,7 +56,7 @@ async function main() {
     // Read configuration file
     try {
         const tomlConfig = TOML.parse(fs.readFileSync(process.env.CONFIG_FILE ?? path.join(__dirname, "prolinux.toml"), "utf-8")) as typeof config;
-        config = _.merge(config, tomlConfig);
+        config = deepExtend(config, tomlConfig);
         log.info("Configuration file loaded!");
         log.info(JSON.stringify(config, null, 4));
     } catch(e) {
@@ -71,12 +72,9 @@ async function main() {
     try{
         fs.unlinkSync("/tmp/prolinuxd.sock");
     } catch (err) {}
-    const server = http.createServer()
-    const wss = new WebSocket.Server({ server });
-    localSocket = wss;
 
     // Local websocket server (/tmp/prolinuxd.sock)
-    wss.on("connection", (socket) => {
+    const wsConnectionHandler = (socket: WebSocket) => {
         log.info("Client connected to ProLinuxD!");
         const saveConfig = () => {
             let tomlConfig = TOML.stringify(config, {
@@ -137,6 +135,11 @@ async function main() {
                         config.pl2.disable_kexec = msg.payload.disableKexec;
                         saveConfig();
                         replyResult(LocalActions.SET_DISABLE_KEXEC, true, {});
+                    } break;
+                    case LocalActions.SET_REMOTE_API: {
+                        config.pl2.remote_api = msg.payload.remoteAPI;
+                        saveConfig();
+                        replyResult(LocalActions.SET_REMOTE_API, true, {});
                     } break;
                     case LocalActions.STATUS: {
                         console.log("Sending status...")
@@ -248,8 +251,13 @@ async function main() {
         socket.on("close", () => {
             log.info("Client disconnected from ProLinuxD!");
         });
-    });
-    
+    };
+
+    const server = http.createServer()
+    const wss = new WebSocket.Server({ server });
+    localSocket = wss;
+
+    wss.on("connection", wsConnectionHandler);
     wss.on("error", (err) => {
         log.error("WS Server error: " + err.message);
         console.log(err)
@@ -284,6 +292,24 @@ async function main() {
         if(config.prolinuxd.modules.includes("pl2")) {
             log.info("Starting ProLinux 2 Module...");
             await loadPL2Module();
+        }
+        console.log(config.pl2.remote_api)
+        if(config.pl2.remote_api) {
+            // create a new wss server on port 25567 using wsConnectionHandler
+            const remoteServer = http.createServer();
+            const remoteWss = new WebSocket.Server({ server: remoteServer });
+            remoteWss.on("connection", (socket) => {
+                // todo check for auth
+                wsConnectionHandler(socket);
+            });
+            remoteWss.on("error", (err) => {
+                log.error("Remote WS Server error: " + err.message);
+                console.log(err)
+            });
+            remoteServer.listen(25567);
+            remoteServer.on("listening", async () => {
+                log.info("Remote API is listening on port 25567!");
+            });
         }
     });    
 }

@@ -16,6 +16,7 @@ export enum LocalActions {
     RESULT = "result",
     SET_DISABLE_KEXEC = "set-disable-kexec",
     DESCRIBE_API = "describe-api",
+    SET_REMOTE_API = "set-remote-api",
 }
 export interface ProLinuxInfo {
     buildnum: string,
