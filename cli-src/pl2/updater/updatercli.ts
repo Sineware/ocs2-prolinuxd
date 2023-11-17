@@ -6,7 +6,8 @@ export async function registerPL2Commands(program: Command) {
 
     const update = program.command('update').description('prolinux update tools')
     update.command('status').description('get available updates and current system info').action(async () => {
-        const prolinuxInfo = (await callWS(LocalActions.STATUS, {}, true)).buildInfo as ProLinuxInfo;
+        const status = (await callWS(LocalActions.STATUS, {}, true));
+        const prolinuxInfo = status.buildInfo as ProLinuxInfo; 
         const updateInfo = (await callWS(LocalActions.GET_UPDATE_INFO, {}, true));
 
         console.log("----------------------------------------");
@@ -24,6 +25,11 @@ export async function registerPL2Commands(program: Command) {
         } else {
             console.log("  - No update available.");
         }
+
+        if(status.disable_kexec) {
+            console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
+        }
+
         console.log("----------------------------------------");
     });
     update.command('install').description('install the latest update').action(async () => {
@@ -52,6 +58,7 @@ export async function registerPL2Commands(program: Command) {
         }*/
         console.log("----------------------------------------");
         console.log("Dispatching update...");
+        const status = (await callWS(LocalActions.STATUS, {}, true));
         await callWS(LocalActions.START_UPDATE, {}, true);
         await streamWS(LocalActions.UPDATE_PROGRESS, (data, ws) => {
             const progress = data.progress;
@@ -69,6 +76,9 @@ export async function registerPL2Commands(program: Command) {
             if(percent == 100) {
                 console.log("Done! Reboot your device to apply the update.");
                 ws.close();
+                if(status.disable_kexec) {
+                    console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
+                }
             }
         });
     });
@@ -96,7 +106,14 @@ export async function registerPL2Commands(program: Command) {
     program.command('disable-kexec')
         .description('Disables Kexec boot - use the firmware kernel from /boot.')
         .action(async (str, options) => {
-            await callWS(LocalActions.SET_DISABLE_KEXEC, { disableKexec: true }, true);
+            if(str == "on") {
+                await callWS(LocalActions.SET_DISABLE_KEXEC, { disableKexec: true }, true);
+            } else if(str == "off") {
+                await callWS(LocalActions.SET_DISABLE_KEXEC, { disableKexec: false }, true);
+            } else {
+                console.log("Invalid state. Must be on or off.");
+                return;
+            }
             console.log("Done! Reboot your device to apply the changes.")
         });
 }
