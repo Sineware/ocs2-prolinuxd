@@ -96,7 +96,8 @@ export async function registerPL2Commands(program: Command) {
                 console.log("Invalid state. Must be on or off.");
                 return;
             }
-            console.log("Done! Reboot your device to apply the changes.")
+            console.log("Done!")
+            console.log("Changes to the root will only be persisted after a reboot. Please reboot now!")
         });
     program.command('reset-writable')
         .description('Reset the writable overlay')
@@ -114,7 +115,7 @@ export async function registerPL2Commands(program: Command) {
                 console.log("Invalid state. Must be on or off.");
                 return;
             }
-            console.log("Done! Reboot your device to apply the changes.")
+            console.log("Done! Please reboot now.");
         });
 }
 // sudo zsync http://espi.sineware.ca/repo/prolinux/mobile/dev/arm64/prolinux-root-mobile-dev.squish.zsync -o ~/prolinux_b.squish
