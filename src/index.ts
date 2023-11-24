@@ -196,6 +196,7 @@ async function main() {
                     case LocalActions.START_UPDATE: {
                         try {
                             const info = await getProLinuxInfo();
+                            let updateInfo = await axios.get(`https://update.sineware.ca/updates/${info.product}/${info.variant}/${info.channel}`);
                             const newRoot = (config.pl2.selected_root === "a") ? "b" : "a";
                             // Download the update from http://cdn.sineware.ca/repo/${info.product}/${info.variant}/${info.channel}/${res.data.arch}/${info.filename}.squish to /sineware/prolinux_${newRoot}.squish
                             // and send update-progress events
@@ -215,7 +216,7 @@ async function main() {
                                         progress: progress += chunk.length,
                                         total: totalLength,
                                         newRoot: newRoot,
-                                        buildnum: info.buildnum,
+                                        buildnum: updateInfo.data.buildnum,
                                     }
                                 });
 
