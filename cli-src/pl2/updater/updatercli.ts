@@ -26,7 +26,7 @@ export async function registerPL2Commands(program: Command) {
             console.log("  - No update available.");
         }
 
-        if(status.disable_kexec) {
+        if(status.disableKexec) {
             console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
         }
 
@@ -54,7 +54,7 @@ export async function registerPL2Commands(program: Command) {
                 if(percent == 100) {
                     console.log("Done! Reboot your device to apply the update.");
                     ws.close();
-                    if(status.disable_kexec) {
+                    if(status.disableKexec) {
                         console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
                     }
                 }
