@@ -77,13 +77,15 @@ export async function registerPL2Commands(program: Command) {
                 console.log("Invalid state. Must be on or off.");
                 return;
             }
-            console.log("Done!")
-            console.log("Changes to the root will only be persisted after a reboot. Please reboot now!")
+            console.log("Done!");
+            console.log("Changes to the root will only be persisted after a reboot. Please reboot now!");
         });
     program.command('reset-writable')
         .description('Reset the writable overlay')
         .action(async (str, options) => {
-            console.log("Not implemented yet.");
+            await callWS(LocalActions.SET_RESET_PERSISTROOT_FLAG, {}, true);
+            console.log("Done!");
+            console.log("The persistroot/writable layer will be reset on the next boot. Please reboot now!");
         });
     program.command('disable-kexec')
         .description('Disables Kexec boot - use the firmware kernel from /boot.')
