@@ -195,6 +195,13 @@ async function main() {
                     } break;
                     case LocalActions.START_UPDATE: {
                         try {
+                            // Check if /sineware/persistroot is empty. If it's not, fail.
+                            if(fs.readdirSync("/sineware/persistroot").length > 0) {
+                                replyResult(LocalActions.START_UPDATE, false, {
+                                    msg: "You have persistent changes in your rootfs! Please disable the root-lock and reset-writable."
+                                });
+                                return;
+                            }
                             const info = await getProLinuxInfo();
                             let updateInfo = await axios.get(`https://update.sineware.ca/updates/${info.product}/${info.variant}/${info.channel}`);
                             const newRoot = (config.pl2.selected_root === "a") ? "b" : "a";
@@ -237,6 +244,10 @@ async function main() {
                         replyResult(LocalActions.DESCRIBE_API, true, {
                             actions: LocalActions
                         });
+                    } break;
+                    case LocalActions.SET_RESET_PERSISTROOT_FLAG: {
+                        fs.writeFileSync("/sineware/data/.reset_persistroot", "1");
+                        replyResult(LocalActions.SET_RESET_PERSISTROOT_FLAG, true, {});
                     } break;
                 }
             } catch(e: any) {

@@ -33,54 +33,35 @@ export async function registerPL2Commands(program: Command) {
         console.log("----------------------------------------");
     });
     update.command('install').description('install the latest update').action(async () => {
-        /*let info = await prolinuxInfo();
-        const res = await axios.get(`https://update.sineware.ca/updates/prolinux/${(await prolinuxInfo()).variant}/${(await prolinuxInfo()).channel}`);
-        console.log("  - Build " + res.data.buildnum + ", " + res.data.uuid);
-        if(res.data.buildnum > (await prolinuxInfo()).buildnum) {
-            console.log("  - Loading system configuration...");
-            const selectedRoot = (await callWS("status", {}, true)).selectedRoot;
-            let newRoot = "";
-            if(selectedRoot === "a") {
-                newRoot = "b";
-            } else {
-                newRoot = "a";
-            }
-            console.log("  - Installing to slot: " + newRoot);
-            console.log("  - Downloading...");
-            exec(`cd /sineware && sudo zsync http://cdn.sineware.ca/repo/${info.product}/${info.variant}/${info.channel}/${res.data.arch}/${info.filename}.zsync -o /sineware/prolinux_${newRoot}.squish -i /sineware/prolinux_${selectedRoot}.squish`);
-            console.log("  - Downloaded!");
-            // todo verify jwt
-            console.log("  - Updating system configuration...");
-            await callWS("set-selected-root", { selectedRoot: newRoot }, true);
-            console.log("Done! Reboot your device to apply the update.");
-        } else {
-            console.log("  - No update available.");
-        }*/
-        console.log("----------------------------------------");
-        console.log("Dispatching update...");
-        const status = (await callWS(LocalActions.STATUS, {}, true));
-        await callWS(LocalActions.START_UPDATE, {}, true);
-        await streamWS(LocalActions.UPDATE_PROGRESS, (data, ws) => {
-            const progress = data.progress;
-            const total = data.total;
-            const newRoot = data.newRoot;
-            const buildnum = data.buildnum;
-
-            const percent = Math.round((progress / total) * 100);
-            
-            console.clear();
+        try {
             console.log("----------------------------------------");
-            console.log("Installing ProLinux Update, Build " + buildnum);
-            console.log("Progress: " + percent + "% (" + progress + "/" + total + ") to root " + newRoot + "...");
+            console.log("Dispatching update...");
+            const status = (await callWS(LocalActions.STATUS, {}, true));
+            await callWS(LocalActions.START_UPDATE, {}, true);
+            await streamWS(LocalActions.UPDATE_PROGRESS, (data, ws) => {
+                const progress = data.progress;
+                const total = data.total;
+                const newRoot = data.newRoot;
+                const buildnum = data.buildnum;
 
-            if(percent == 100) {
-                console.log("Done! Reboot your device to apply the update.");
-                ws.close();
-                if(status.disable_kexec) {
-                    console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
+                const percent = Math.round((progress / total) * 100);
+                
+                console.clear();
+                console.log("----------------------------------------");
+                console.log("Installing ProLinux Update, Build " + buildnum);
+                console.log("Progress: " + percent + "% (" + progress + "/" + total + ") to root " + newRoot + "...");
+
+                if(percent == 100) {
+                    console.log("Done! Reboot your device to apply the update.");
+                    ws.close();
+                    if(status.disable_kexec) {
+                        console.log("**WARNING** Kexec is disabled! You MUST update the boot partition manually or your device will not boot!");
+                    }
                 }
-            }
-        });
+            });
+        } catch(e) {
+            console.log("Error: " + e);
+        }
     });
 
     // Root Lock
